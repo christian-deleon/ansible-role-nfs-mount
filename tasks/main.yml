@@ -1,0 +1,30 @@
+# file: tasks/main.yml
+---
+- name: Install NFS client packages
+  ansible.builtin.package:
+    name: nfs-common
+    state: present
+  become: true
+
+- name: Create mount point
+  ansible.builtin.file:
+    path: "{{ nfs_mount_point }}"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Mount NFS share
+  ansible.builtin.mount:
+    path: "{{ nfs_mount_point }}"
+    src: "{{ nfs_server }}:{{ nfs_share }}"
+    fstype: nfs
+    opts: defaults
+    state: mounted
+  become: true
+
+- name: Add NFS mount to fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "{{ nfs_server }}:{{ nfs_share }} {{ nfs_mount_point }} nfs defaults 0 0"
+    state: present
+  become: true
